@@ -14,13 +14,18 @@ llm = ChatOpenAI(
 # Set search to DuckDuckGo
 search = DuckDuckGoSearchResults()
 
+from utils import query_prompt_template
+
 class SearchTool(BaseTool):
     name = "search"
     description = "useful for when you need to answer questions about current events, or verify critical information"
 
     def _run(self, query: str) -> str:
         """Use the tool."""
-        return search.run(query)
+        def run_search(query: str):
+            search.run(query)
+
+        return query_prompt_template | run_search
 
 # For testing purposes  
 tools = [SearchTool()]
