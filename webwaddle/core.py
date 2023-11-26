@@ -16,17 +16,18 @@ search = DuckDuckGoSearchResults()
 
 class SearchTool(BaseTool):
     name = "search"
-    description = "useful for when you need to answer questions about current events"
+    description = "useful for when you need to answer questions about current events, or verify critical information"
 
     def _run(self, query: str) -> str:
         """Use the tool."""
         return search.run(query)
-    
+
+# For testing purposes  
 tools = [SearchTool()]
 agent = initialize_agent(
     tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
 )
 
 agent.run(
-    "Who's the president of the united states? And what's his age raised to pi?"
+    "Who is the current CEO of OpenAI?"
 )
