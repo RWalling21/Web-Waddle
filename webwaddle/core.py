@@ -1,6 +1,6 @@
 from langchain.agents import AgentType, initialize_agent
 from langchain.chat_models import ChatOpenAI
-from langchain.tools import BaseTool, DuckDuckGoSearchResults
+from langchain.tools import BaseTool, DuckDuckGoSearchResults, DuckDuckGoSearchRun
 from langchain.utilities import DuckDuckGoSearchAPIWrapper
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
@@ -21,8 +21,8 @@ llm = ChatOpenAI(
 
 # SetupDuckDuckGo searcher
 MAX_RESULTS = 3
-wrapper = DuckDuckGoSearchAPIWrapper(region="de-de", time="d", max_results=MAX_RESULTS)
-search = DuckDuckGoSearchResults(wrapper=wrapper)
+result_search = DuckDuckGoSearchResults()
+page_search = DuckDuckGoSearchRun()
 
 # Import Pydantic types
 from utils import SearchResult, SearchResults, SummaryInput
@@ -50,7 +50,7 @@ class SearchTool(BaseTool):
     
     def run_search(self, query: str) -> SearchResults:
         # Use DuckDuckGo to search for the query 
-        raw_results = search.run(query)
+        raw_results = result_search.run(query)
 
         # Parse the string to extract relevant information
         pattern = r"snippet: (.*?), title: (.*?), link: (.*?)(?:, \[|$)"
@@ -58,10 +58,15 @@ class SearchTool(BaseTool):
 
         processed_results = []
         for snippet, title, link in matches:
-            try:
-                processed_results.append(SearchResult(snippet=snippet, title=title, link=link))
-            except TypeError as e:
-                print(f"Error processing result: {e}")
+            # Fetch the content of the web page
+            print("Link: " + link)
+
+            page_content = page_search.run(link)
+            
+            print("\nPage Content: " + page_content + "\n")
+            updated_snippet = page_content  
+
+            processed_results.append(SearchResult(snippet=updated_snippet, title=title, link=link))
 
         return SearchResults(results=processed_results)
     
