@@ -15,4 +15,22 @@ YOUT MUST cite every fact, number, stat, etc with the URL of the page that the c
     
 summary_prompt_template = ChatPromptTemplate.from_template(SUMMARY_PROMPT)
 
-# Summarize
+# Pydantic Type definitions 
+from pydantic import BaseModel, HttpUrl
+from typing import List
+
+# Search result
+class SearchResult(BaseModel):
+    snippet: str
+    title: str
+    link: HttpUrl
+
+# List of search results 
+class SearchResults(BaseModel):
+    results: List[SearchResult]
+
+# Summary prompt input
+class SummaryInput(BaseModel):
+    snippets: List[str]
+    context: str
+    question: str

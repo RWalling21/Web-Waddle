@@ -1,8 +1,12 @@
-from typing import List
-from langchain.agents import AgentType, AgentExecutor, initialize_agent
+from langchain.agents import AgentType, initialize_agent
 from langchain.chat_models import ChatOpenAI
-from langchain.tools import BaseTool, DuckDuckGoSearchResults, DuckDuckGoSearchRun
-from pydantic import BaseModel, HttpUrl
+from langchain.tools import BaseTool, DuckDuckGoSearchResults
+from langchain.utilities import DuckDuckGoSearchAPIWrapper
+from langchain.schema.runnable import RunnablePassthrough
+from langchain.schema.output_parser import StrOutputParser
+
+from utils import summary_prompt_template
+
 from dotenv import load_dotenv
 import re
 
@@ -15,25 +19,13 @@ llm = ChatOpenAI(
     model="gpt-3.5-turbo-1106"
 )
 
-# Set search to DuckDuckGo
-search = DuckDuckGoSearchResults()
+# SetupDuckDuckGo searcher
+MAX_RESULTS = 3
+wrapper = DuckDuckGoSearchAPIWrapper(region="de-de", time="d", max_results=MAX_RESULTS)
+search = DuckDuckGoSearchResults(wrapper=wrapper)
 
-# Type definitions 
-# Search result
-class SearchResult(BaseModel):
-    snippet: str
-    title: str
-    link: HttpUrl
-
-# List of search results 
-class SearchResults(BaseModel):
-    results: List[SearchResult]
-
-# Summary prompt input
-class SummaryInput(BaseModel):
-    snippets: List[str]
-    context: str
-    question: str
+# Import Pydantic types
+from utils import SearchResult, SearchResults, SummaryInput
 
 # Define the tool
 from utils import summary_prompt_template
@@ -60,13 +52,9 @@ class SearchTool(BaseTool):
         # Use DuckDuckGo to search for the query 
         raw_results = search.run(query)
 
-        print("RAW: " + raw_results)
-
         # Parse the string to extract relevant information
         pattern = r"snippet: (.*?), title: (.*?), link: (.*?)(?:, \[|$)"
         matches = re.findall(pattern, raw_results)
-
-        print(matches)
 
         processed_results = []
         for snippet, title, link in matches:
@@ -80,17 +68,24 @@ class SearchTool(BaseTool):
     def summarize_results(self, search_results: SearchResults) -> str:
         # Gather and concatenate all search results
         snippets = [r.snippet for r in search_results.results]
-        context = ' | Next Page | '.join(snippets)
+        context = ' | Next Result | '.join(snippets)
 
-        # Summarize the search results
-        summary_input = SummaryInput(snippets=snippets, context=context, question="Who is the current CEO of OpenAI?")
+        # Prepare the input for the scrape_and_summarize_chain
+        chain_input = {
+            'context': context, 
+            'question': "Who is the current CEO of OpenAI?"
+        }
+
+        # Attempt to summarize the context
         try:
-            summary = llm.generate(
-                summary_prompt_template,
-                context=summary_input.context,
-                question=summary_input.question,
-                max_tokens=750,
-            )
+            # Adjust prompt template
+            summary_prompt_template.format(context=context, question="Who is the CEO of OPENAI")
+
+            # Summarize the search results
+            scrape_and_summarize_chain = summary_prompt_template | ChatOpenAI(model="gpt-3.5-turbo-1106") | StrOutputParser() 
+
+            # Generate summary
+            summary = scrape_and_summarize_chain.invoke(chain_input)
         except TypeError as e:
             print(f"Error generating summary: {e}")
             return "Error in generating summary."
