@@ -43,7 +43,7 @@ class SearchTool(BaseTool):
         results = self.run_search(query)
         print(results)
 
-        summary = self.summarize_results(results)
+        summary = self.summarize_results(results, query)
         print(summary)
 
         return summary
@@ -65,7 +65,7 @@ class SearchTool(BaseTool):
 
         return SearchResults(results=processed_results)
     
-    def summarize_results(self, search_results: SearchResults) -> str:
+    def summarize_results(self, search_results: SearchResults, query: str) -> str:
         # Gather and concatenate all search results
         snippets = [r.snippet for r in search_results.results]
         context = ' | Next Result | '.join(snippets)
@@ -73,13 +73,13 @@ class SearchTool(BaseTool):
         # Prepare the input for the scrape_and_summarize_chain
         chain_input = {
             'context': context, 
-            'question': "Who is the current CEO of OpenAI?"
+            'question': query,
         }
 
         # Attempt to summarize the context
         try:
             # Adjust prompt template
-            summary_prompt_template.format(context=context, question="Who is the CEO of OPENAI")
+            summary_prompt_template.format(context=context, question=query)
 
             # Summarize the search results
             scrape_and_summarize_chain = summary_prompt_template | ChatOpenAI(model="gpt-3.5-turbo-1106") | StrOutputParser() 
