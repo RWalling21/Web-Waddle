@@ -46,6 +46,7 @@ class SearchTool(BaseTool):
         summary = self.summarize_results(results, query)
         print(summary)
 
+
         return summary
     
     def run_search(self, query: str) -> SearchResults:
@@ -56,19 +57,10 @@ class SearchTool(BaseTool):
         pattern = r"snippet: (.*?), title: (.*?), link: (.*?)(?:, \[|$)"
         matches = re.findall(pattern, raw_results)
 
-        processed_results = []
-        for snippet, title, link in matches:
-            # Fetch the content of the web page
-            print("Link: " + link)
+        # Convert matches to SearchResult instances
+        search_results = [SearchResult(snippet=snippet, title=title, link=link) for snippet, title, link in matches]
 
-            page_content = page_search.run(link)
-            
-            print("\nPage Content: " + page_content + "\n")
-            updated_snippet = page_content  
-
-            processed_results.append(SearchResult(snippet=updated_snippet, title=title, link=link))
-
-        return SearchResults(results=processed_results)
+        return SearchResults(results=search_results)
     
     def summarize_results(self, search_results: SearchResults, query: str) -> str:
         # Gather and concatenate all search results
@@ -106,4 +98,4 @@ search_agent = initialize_agent(
     verbose=True
 )
 
-search_agent.invoke({"input": "Who is the current CEO of OpenAI?"})
+search_agent.invoke({"input": "How do black holes relate to general relativity?"})
