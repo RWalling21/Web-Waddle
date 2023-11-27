@@ -1,14 +1,36 @@
 from langchain.prompts import ChatPromptTemplate
 
-# Search 
-SEARCH_PROMPT = """"Given the question: '{question}', write 3 unique Google search queries that will help 
-in forming an objective opinion or understanding.\n
-Ensure that your queries are diverse and cover different aspects or perspectives related to the question. 
-Format your response in PROPER JSON FORMAT as it will be parsed using json.loads(). 
-Respond with a list of strings in the following format: '["query 1", "query 2", "query 3"]. 
-Please think carefully, the quality of these queries is crucial for my career."
+# Query 
+SUMMARY_PROMPT = """"{context}
+
+------------
+Based on the provided context, write a clear, concise, in-debth, and well-structured summary that includes all relevant factual information, numbers, and statistics. The summary should be specifically tailored to answer the following question:
+
+> {question}
+
+------------
+You MUST summarize the text in a well written and clear way. Include all factual information, numbers, stats etc if available. Write as much as is necessary to fully summarize the context, but DO NOT repeat yourself.
+YOU MUST cite every fact, number, stat, etc with the URL of the page that the content was taken from. YOU MUST ensure that all summarized information is the most up to date possible.
 """
     
-search_prompt_template = ChatPromptTemplate.from_template(SEARCH_PROMPT)
+summary_prompt_template = ChatPromptTemplate.from_template(SUMMARY_PROMPT)
 
-# Summarize
+# Pydantic Type definitions 
+from pydantic import BaseModel, HttpUrl
+from typing import List
+
+# Search result
+class SearchResult(BaseModel):
+    snippet: str
+    title: str
+    link: HttpUrl
+
+# List of search results 
+class SearchResults(BaseModel):
+    results: List[SearchResult]
+
+# Summary prompt input
+class SummaryInput(BaseModel):
+    snippets: List[str]
+    context: str
+    question: str
