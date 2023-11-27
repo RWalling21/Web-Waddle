@@ -2,9 +2,9 @@ from langchain.chat_models import ChatOpenAI
 from langchain.tools import BaseTool, DuckDuckGoSearchResults, DuckDuckGoSearchRun
 from langchain.schema.output_parser import StrOutputParser
 # Import Prompt template
-from webwaddle.prompts import summary_prompt_template
+from prompts import summary_prompt_template
 # Import Pydantic data structures
-from data_model import SearchResult, SearchResults, SummaryInput
+from data_model import SearchResult, SearchResults
 from dotenv import load_dotenv
 import re
 
