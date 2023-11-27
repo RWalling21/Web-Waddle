@@ -1,11 +1,11 @@
 from langchain.agents import AgentType, initialize_agent
 from langchain.chat_models import ChatOpenAI
 from langchain.tools import BaseTool, DuckDuckGoSearchResults, DuckDuckGoSearchRun
-from langchain.utilities import DuckDuckGoSearchAPIWrapper
-from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 
 from utils import summary_prompt_template
+from pydantic import BaseModel, HttpUrl
+from typing import List
 
 from dotenv import load_dotenv
 import re
@@ -24,8 +24,21 @@ MAX_RESULTS = 3
 result_search = DuckDuckGoSearchResults()
 page_search = DuckDuckGoSearchRun()
 
-# Import Pydantic types
-from utils import SearchResult, SearchResults, SummaryInput
+# Search result
+class SearchResult(BaseModel):
+    snippet: str
+    title: str
+    link: HttpUrl
+
+# List of search results 
+class SearchResults(BaseModel):
+    results: List[SearchResult]
+
+# Summary prompt input
+class SummaryInput(BaseModel):
+    snippets: List[str]
+    context: str
+    question: str
 
 # Define the tool
 from utils import summary_prompt_template
@@ -39,15 +52,13 @@ class SearchTool(BaseTool):
     name = "search"
     description = "useful for when you need to answer questions about current events, or verify critical information"
 
-    def _run(self, query: str) -> str:
+    def _run(self, query: str, summary: bool=True) -> str:
         results = self.run_search(query)
-        print(results)
 
-        summary = self.summarize_results(results, query)
-        print(summary)
-
-
-        return summary
+        if summary:
+            return self.summarize_results(results, query)
+        else:
+            return results
     
     def run_search(self, query: str) -> SearchResults:
         # Use DuckDuckGo to search for the query 
@@ -57,10 +68,15 @@ class SearchTool(BaseTool):
         pattern = r"snippet: (.*?), title: (.*?), link: (.*?)(?:, \[|$)"
         matches = re.findall(pattern, raw_results)
 
-        # Convert matches to SearchResult instances
-        search_results = [SearchResult(snippet=snippet, title=title, link=link) for snippet, title, link in matches]
+        processed_results = []
+        for snippet, title, link in matches:
+            page_content = page_search.run(title)
 
-        return SearchResults(results=search_results)
+            updated_snippet = page_content  
+
+            processed_results.append(SearchResult(snippet=updated_snippet, title=title, link=link))
+
+        return SearchResults(results=processed_results)
     
     def summarize_results(self, search_results: SearchResults, query: str) -> str:
         # Gather and concatenate all search results
@@ -91,11 +107,10 @@ class SearchTool(BaseTool):
 
 # For testing purposes  
 tools = [SearchTool()]
-search_agent = initialize_agent(
-    tools, 
-    llm, 
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
-    verbose=True
+agent = initialize_agent(
+    tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
 )
 
-search_agent.invoke({"input": "How do black holes relate to general relativity?"})
+agent.run(
+    "Who is the current CEO of OpenAI"
+)
