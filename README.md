@@ -12,22 +12,22 @@ WebWaddle is a cost-free, open-source alternative to premium web scraping soluti
 
 Clone the repository:
 
-\```bash
+```bash
 git clone https://github.com/RWalling21/Web-Waddle.git
 cd Web-Waddle
-\```
+```
 
 Install dependencies:
 
-\```bash
+```bash
 pip install -r requirements.txt
-\```
+```
 
 ## Usage
 
 To use WebWaddle, simply import the tool and call its methods in your Python scripts. Here is a basic example:
 
-\```python
+```python
 # Import WedWaddle
 from webwaddle import WebWaddle
 # Import Langchain Agents 
@@ -55,7 +55,7 @@ Observation: Sam Altman, the former CEO of OpenAI, was fired from his role at Ch
 Thought:I now know the final answer
 Final Answer: Sam Altman is the current CEO of OpenAI
 """
-\```
+```
 
 ## License
 
