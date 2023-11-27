@@ -42,23 +42,22 @@ class SummaryInput(BaseModel):
 
 # Define the tool
 from utils import summary_prompt_template
-class SearchTool(BaseTool):
+class WebWaddle(BaseTool):
     """
     A tool for performing searches using DuckDuckGo and summarizing the results.
 
     This tool is designed to search for information relevant to current events or to verify critical information. 
     It queries DuckDuckGo with a given search term, retrieves the results, and then summarizes these results to provide a concise overview.
     """
-    name = "search"
+    name = "WebWaddle Searcher"
     description = "useful for when you need to answer questions about current events, or verify critical information"
 
-    def _run(self, query: str, summary: bool=True) -> str:
+    def _run(self, query: str) -> str:
+        # Find web results of running the query
         results = self.run_search(query)
 
-        if summary:
-            return self.summarize_results(results, query)
-        else:
-            return results
+        # Summarize web results for use in prompt
+        return self.summarize_results(results, query)
     
     def run_search(self, query: str) -> SearchResults:
         # Use DuckDuckGo to search for the query 
@@ -106,7 +105,7 @@ class SearchTool(BaseTool):
         return summary
 
 # For testing purposes  
-tools = [SearchTool()]
+tools = [WebWaddle()]
 agent = initialize_agent(
     tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
 )
