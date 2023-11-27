@@ -1,12 +1,10 @@
-from langchain.agents import AgentType, initialize_agent
 from langchain.chat_models import ChatOpenAI
 from langchain.tools import BaseTool, DuckDuckGoSearchResults, DuckDuckGoSearchRun
 from langchain.schema.output_parser import StrOutputParser
-
-from utils import summary_prompt_template
-from pydantic import BaseModel, HttpUrl
-from typing import List
-
+# Import Prompt template
+from webwaddle.prompts import summary_prompt_template
+# Import Pydantic data structures
+from data_model import SearchResult, SearchResults, SummaryInput
 from dotenv import load_dotenv
 import re
 
@@ -20,28 +18,9 @@ llm = ChatOpenAI(
 )
 
 # SetupDuckDuckGo searcher
-MAX_RESULTS = 3
 result_search = DuckDuckGoSearchResults()
 page_search = DuckDuckGoSearchRun()
 
-# Search result
-class SearchResult(BaseModel):
-    snippet: str
-    title: str
-    link: HttpUrl
-
-# List of search results 
-class SearchResults(BaseModel):
-    results: List[SearchResult]
-
-# Summary prompt input
-class SummaryInput(BaseModel):
-    snippets: List[str]
-    context: str
-    question: str
-
-# Define the tool
-from utils import summary_prompt_template
 class WebWaddle(BaseTool):
     """
     A tool for performing searches using DuckDuckGo and summarizing the results.
@@ -98,18 +77,8 @@ class WebWaddle(BaseTool):
 
             # Generate summary
             summary = scrape_and_summarize_chain.invoke(chain_input)
-        except TypeError as e:
-            print(f"Error generating summary: {e}")
+        except TypeError as E:
+            print(f"Error generating summary: {E}")
             return "Error in generating summary."
 
         return summary
-
-# For testing purposes  
-tools = [WebWaddle()]
-agent = initialize_agent(
-    tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
-)
-
-agent.run(
-    "Who is the current CEO of OpenAI"
-)
