@@ -1,12 +1,12 @@
 # WebWaddle
 
-WebWaddle is a cost-free, open-source alternative to premium web scraping solutions. This tool democratizes web data extraction, offering a powerful and accessible option for comprehensive online data gathering. Leveraging the capabilities of DuckDuckGo for searching and OpenAI's GPT-3.5 for summarizing, WebWaddle provides an efficient means to extract and condense information from the web.
+WebWaddle is a cost-free, open-source alternative to premium web retreval solutions. This tool democratizes web data extraction for llm's, offering a powerful and accessible option for comprehensive online data gathering. Leveraging the capabilities of DuckDuckGo searching and OpenAI GPT-3.5 for summarization, WebWaddle provides an efficient means to extract and condense information from the web. Built to seamlesly integrate with your existing langchain toolchain, just plug and play! 
 
 ## Features
 
 - **Comprehensive Search**: Utilizes DuckDuckGo to fetch relevant information from the web.
 - **Advanced Summarization**: Leverages OpenAI's GPT-3.5 model to create concise and informative summaries of the search results.
-- **Customizable and Extensible**: Easily adaptable to various web scraping and data summarization needs.
+- **Customizable and Extensible**: Easily adaptable to various web retrieval and data summarization needs.
 
 ## Installation
 
@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-To use WebWaddle, simply import the tool and call its methods in your Python scripts. Here is a basic example:
+To use WebWaddle, simply import the tool and add it to your langchain toolchain. Here is a basic example:
 
 ```python
 # Import WedWaddle
@@ -45,7 +45,8 @@ agent = initialize_agent(
 agent.run(
     "Who is the current CEO of OpenAI?"
 ) 
-
+```
+```bash
 """
 > Entering new AgentExecutor chain...
 I should search for the current CEO of OpenAI.
@@ -59,7 +60,7 @@ Final Answer: Sam Altman is the current CEO of OpenAI
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/RWalling21/Web-Waddle/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/RWalling21/Web-Waddle/blob/main/LICENSE) file for details.
 
 ## Contact
 
